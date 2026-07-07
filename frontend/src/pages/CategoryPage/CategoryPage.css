@@ -1,0 +1,72 @@
+.category-page{
+
+    width:100%;
+
+}
+
+.category-page h1{
+
+    margin-bottom:30px;
+    color:#111827;
+
+}
+
+.category-grid{
+
+    display:grid;
+
+    grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+
+    gap:20px;
+
+}
+
+.category-card{
+
+    background:white;
+
+    padding:22px;
+
+    border-radius:18px;
+
+    cursor:pointer;
+
+    transition:.25s;
+
+    box-shadow:0 8px 20px rgba(0,0,0,.08);
+
+}
+
+.category-card:hover{
+
+    transform:translateY(-5px);
+
+}
+
+.category-card h3{
+
+    margin-bottom:10px;
+
+}
+
+.category-card p{
+
+    color:#6b7280;
+
+    margin-bottom:15px;
+
+}
+
+.category-card span{
+
+    background:#2563eb;
+
+    color:white;
+
+    padding:6px 12px;
+
+    border-radius:20px;
+
+    font-size:13px;
+
+}

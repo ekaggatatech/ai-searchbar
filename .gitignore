@@ -1,0 +1,32 @@
+# ===== Python (backend) =====
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+env/
+*.egg-info/
+.pytest_cache/
+
+# ===== Node / React (frontend) =====
+node_modules/
+build/
+dist/
+.eslintcache
+
+# ===== Environment / secrets =====
+.env
+.env.*
+!.env.example
+
+# ===== Generated data / artifacts =====
+backend/faiss_index/
+*.db
+*.sqlite3
+
+# ===== Editor / OS =====
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.log

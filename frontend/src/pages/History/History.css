@@ -1,0 +1,51 @@
+.history-page{
+
+    max-width:900px;
+
+    margin:auto;
+
+}
+
+.history-page h1{
+
+    margin-bottom:25px;
+
+}
+
+.history-card{
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    background:white;
+
+    margin-bottom:15px;
+
+    padding:18px 22px;
+
+    border-radius:15px;
+
+    box-shadow:0 6px 18px rgba(0,0,0,.08);
+
+}
+
+.history-card button{
+
+    border:none;
+
+    background:#ef4444;
+
+    color:white;
+
+    width:40px;
+
+    height:40px;
+
+    border-radius:50%;
+
+    cursor:pointer;
+
+}

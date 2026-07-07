@@ -1,0 +1,262 @@
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import SearchIcon from "@mui/icons-material/Search";
+import CloseIcon from "@mui/icons-material/Close";
+
+import api from "../../api/api";
+import "./SearchBar.css";
+
+export default function SearchBar() {
+    const navigate = useNavigate();
+
+    const [query, setQuery] = useState("");
+    const [suggestions, setSuggestions] = useState([]);
+    const [recentSearches, setRecentSearches] = useState([]);
+    const [results, setResults] = useState([]);
+
+    useEffect(() => {
+        loadRecentSearches();
+    }, []);
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (query.trim().length > 0) {
+                fetchSuggestions(query);
+            } else {
+                setSuggestions([]);
+            }
+        }, 300);
+
+        return () => clearTimeout(timer);
+    }, [query]);
+
+    const loadRecentSearches = async () => {
+        try {
+            const res = await api.get("/history");
+            setRecentSearches(Array.isArray(res.data) ? res.data : []);
+        } catch (error) {
+            console.log("Recent searches load error", error);
+        }
+    };
+
+    const fetchSuggestions = async (text) => {
+        try {
+            const res = await api.get(
+                `/suggestions?query=${encodeURIComponent(text)}`
+            );
+            setSuggestions(Array.isArray(res.data) ? res.data : []);
+        } catch (error) {
+            console.log("Suggestion error", error);
+        }
+    };
+
+    const removeDuplicateResults = (items) => {
+        const seen = new Set();
+
+        return items.filter((item) => {
+            const key = item.route || item.doc_id || item.id || item.title;
+
+            if (seen.has(key)) return false;
+
+            seen.add(key);
+            return true;
+        });
+    };
+
+    const handleSearch = async (searchText = query) => {
+        const finalQuery = searchText.trim();
+        if (!finalQuery) return;
+
+        try {
+            await api.post("/history", { query: finalQuery });
+
+            const suggestionRes = await api.get(
+                `/suggestions?query=${encodeURIComponent(finalQuery)}`
+            );
+
+            const sidebarResults = [];
+
+            if (Array.isArray(suggestionRes.data)) {
+                suggestionRes.data.forEach((item) => {
+                    sidebarResults.push({
+                        id: item.route,
+                        title: item.name,
+                        description: `Open ${item.name} page`,
+                        department: "Page",
+                        route: item.route,
+                        result_type: "page",
+                    });
+
+                    if (item.children && item.children.length > 0) {
+                        item.children.forEach((child) => {
+                            sidebarResults.push({
+                                id: child.doc_id,
+                                doc_id: child.doc_id,
+                                title: child.title,
+                                description: "Related document",
+                                department: item.name,
+                                result_type: "document",
+                            });
+                        });
+                    }
+                });
+            }
+
+            const res = await api.post("/ai-search", {
+                query: finalQuery,
+                top_k: 10,
+            });
+
+            const aiResults = res.data.results || res.data || [];
+            const finalResults = removeDuplicateResults([
+                ...sidebarResults,
+                ...aiResults,
+            ]);
+
+            setResults(finalResults);
+            setSuggestions([]);
+            setQuery(finalQuery);
+            loadRecentSearches();
+        } catch (error) {
+            console.log("Search error", error);
+        }
+    };
+
+    const handleParentClick = (item) => {
+        setSuggestions([]);
+        setQuery(item.name);
+        navigate(item.route);
+    };
+
+    const handleChildClick = (child) => {
+        setSuggestions([]);
+        setQuery(child.title);
+
+        if (child.route) {
+            navigate(child.route);
+        } else {
+            navigate(`/document/${child.doc_id}`);
+        }
+    };
+
+    const handleResultClick = (item) => {
+        if (item.route) {
+            navigate(item.route);
+        } else {
+            navigate(`/document/${item.doc_id || item.id}`);
+        }
+    };
+
+    const deleteRecentSearch = async (id) => {
+        try {
+            await api.delete(`/history/${id}`);
+            loadRecentSearches();
+        } catch (error) {
+            console.log("Delete history error", error);
+        }
+    };
+
+    return (
+        <div className="search-wrapper">
+            <div className="search-title">
+                <h1>AI Powered Enterprise Search</h1>
+                <p>Find HR, Finance, IT, Admin and company documents instantly</p>
+            </div>
+
+            <div className="search-box">
+                <SearchIcon className="search-icon" />
+
+                <input
+                    type="text"
+                    placeholder="Search leave policy, payslip, IT security..."
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    onKeyDown={(e) => {
+                        if (e.key === "Enter") handleSearch();
+                    }}
+                />
+
+                {query && (
+                    <button
+                        className="clear-btn"
+                        onClick={() => {
+                            setQuery("");
+                            setSuggestions([]);
+                            setResults([]);
+                        }}
+                    >
+                        <CloseIcon />
+                    </button>
+                )}
+
+                <button className="search-btn" onClick={() => handleSearch()}>
+                    Search
+                </button>
+            </div>
+
+            {suggestions.length > 0 && (
+                <div className="suggestion-box">
+                    {suggestions.map((item, index) => (
+                        <div className="suggestion-group" key={index}>
+                            <div
+                                className="suggestion-item parent-suggestion"
+                                onClick={() => handleParentClick(item)}
+                            >
+                                <SearchIcon />
+                                <span>{item.name}</span>
+                                <small>Page</small>
+                            </div>
+
+                            {item.children && item.children.length > 0 && (
+                                <div className="child-suggestions">
+                                    {item.children.map((child, childIndex) => (
+                                        <div
+                                            className="suggestion-item child-suggestion"
+                                            key={childIndex}
+                                            onClick={() => handleChildClick(child)}
+                                        >
+                                            <span>↳ {child.title}</span>
+                                            <small>Document</small>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            {recentSearches.length > 0 && (
+                <div className="recent-box">
+                    <h3>Recent Searches</h3>
+
+                    <div className="recent-list">
+                        {recentSearches.map((item) => (
+                            <div className="recent-chip" key={item.id}>
+                                <span onClick={() => handleSearch(item.query)}>
+                                    {item.query}
+                                </span>
+
+                                <button onClick={() => deleteRecentSearch(item.id)}>×</button>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            <div className="results-grid">
+                {results.map((item) => (
+                    <div
+                        className="result-card"
+                        key={item.route || item.doc_id || item.id}
+                        onClick={() => handleResultClick(item)}
+                    >
+                        <h3>{item.title}</h3>
+                        <p>{item.description}</p>
+                        <span>{item.department}</span>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+}

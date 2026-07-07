@@ -1,0 +1,260 @@
+[
+    {
+        "id": "DOC001",
+        "title": "Leave Policy",
+        "department": "HR",
+        "category": "Policies",
+        "description": "Company leave rules and regulations.",
+        "keywords": [
+            "leave",
+            "vacation",
+            "holiday",
+            "sick leave",
+            "casual leave"
+        ],
+        "author": "HR Department",
+        "created_date": "2025-01-15",
+        "last_updated": "2026-01-10",
+        "file_path": "documents/hr/leave_policy.pdf"
+    },
+    {
+        "id": "DOC002",
+        "title": "Attendance Policy",
+        "department": "HR",
+        "category": "Policies",
+        "description": "Office attendance and working hours.",
+        "keywords": [
+            "attendance",
+            "office hours",
+            "work timing",
+            "late entry"
+        ],
+        "author": "HR Department",
+        "created_date": "2025-02-05",
+        "last_updated": "2026-02-01",
+        "file_path": "documents/hr/attendance_policy.pdf"
+    },
+    {
+        "id": "DOC003",
+        "title": "Salary Structure",
+        "department": "Finance",
+        "category": "Payroll",
+        "description": "Salary components and payroll process.",
+        "keywords": [
+            "salary",
+            "payroll",
+            "CTC",
+            "basic pay",
+            "allowances"
+        ],
+        "author": "Finance Team",
+        "created_date": "2025-03-10",
+        "last_updated": "2026-03-01",
+        "file_path": "documents/finance/salary_structure.pdf"
+    },
+    {
+        "id": "DOC004",
+        "title": "Expense Reimbursement Policy",
+        "department": "Finance",
+        "category": "Finance",
+        "description": "Rules for claiming official expenses.",
+        "keywords": [
+            "expense",
+            "reimbursement",
+            "travel",
+            "claims"
+        ],
+        "author": "Finance Team",
+        "created_date": "2025-03-15",
+        "last_updated": "2026-01-25",
+        "file_path": "documents/finance/reimbursement_policy.pdf"
+    },
+    {
+        "id": "DOC005",
+        "title": "Employee Handbook",
+        "department": "HR",
+        "category": "Guidelines",
+        "description": "Complete employee handbook.",
+        "keywords": [
+            "employee",
+            "handbook",
+            "rules",
+            "company"
+        ],
+        "author": "HR Department",
+        "created_date": "2025-01-01",
+        "last_updated": "2026-02-15",
+        "file_path": "documents/hr/employee_handbook.pdf"
+    },
+    {
+        "id": "DOC006",
+        "title": "IT Security Policy",
+        "department": "IT",
+        "category": "Security",
+        "description": "Cybersecurity guidelines for employees.",
+        "keywords": [
+            "security",
+            "password",
+            "vpn",
+            "cyber",
+            "network"
+        ],
+        "author": "IT Team",
+        "created_date": "2025-04-12",
+        "last_updated": "2026-04-01",
+        "file_path": "documents/it/security_policy.pdf"
+    },
+    {
+        "id": "DOC007",
+        "title": "Laptop Usage Policy",
+        "department": "IT",
+        "category": "Assets",
+        "description": "Guidelines for company laptops.",
+        "keywords": [
+            "laptop",
+            "asset",
+            "device",
+            "computer"
+        ],
+        "author": "IT Team",
+        "created_date": "2025-05-02",
+        "last_updated": "2026-02-18",
+        "file_path": "documents/it/laptop_policy.pdf"
+    },
+    {
+        "id": "DOC008",
+        "title": "Software Installation Guide",
+        "department": "IT",
+        "category": "Guides",
+        "description": "Approved software installation procedure.",
+        "keywords": [
+            "software",
+            "installation",
+            "application",
+            "setup"
+        ],
+        "author": "IT Support",
+        "created_date": "2025-05-20",
+        "last_updated": "2026-03-10",
+        "file_path": "documents/it/software_installation.pdf"
+    },
+    {
+        "id": "DOC009",
+        "title": "Travel Policy",
+        "department": "Administration",
+        "category": "Travel",
+        "description": "Official travel rules and approvals.",
+        "keywords": [
+            "travel",
+            "hotel",
+            "flight",
+            "official tour"
+        ],
+        "author": "Administration",
+        "created_date": "2025-06-01",
+        "last_updated": "2026-01-18",
+        "file_path": "documents/admin/travel_policy.pdf"
+    },
+    {
+        "id": "DOC010",
+        "title": "Procurement Policy",
+        "department": "Administration",
+        "category": "Procurement",
+        "description": "Purchase approval workflow.",
+        "keywords": [
+            "procurement",
+            "purchase",
+            "vendor",
+            "quotation"
+        ],
+        "author": "Administration",
+        "created_date": "2025-06-15",
+        "last_updated": "2026-02-22",
+        "file_path": "documents/admin/procurement_policy.pdf"
+    },
+    {
+        "id": "DOC011",
+        "title": "Code of Conduct",
+        "department": "HR",
+        "category": "Compliance",
+        "description": "Professional behavior and ethics.",
+        "keywords": [
+            "conduct",
+            "ethics",
+            "discipline",
+            "behavior"
+        ],
+        "author": "HR Department",
+        "created_date": "2025-02-20",
+        "last_updated": "2026-02-05",
+        "file_path": "documents/hr/code_of_conduct.pdf"
+    },
+    {
+        "id": "DOC012",
+        "title": "Sales Incentive Plan",
+        "department": "Sales",
+        "category": "Sales",
+        "description": "Sales commission and incentive structure.",
+        "keywords": [
+            "sales",
+            "commission",
+            "bonus",
+            "target"
+        ],
+        "author": "Sales Team",
+        "created_date": "2025-07-01",
+        "last_updated": "2026-03-12",
+        "file_path": "documents/sales/incentive_plan.pdf"
+    },
+    {
+        "id": "DOC013",
+        "title": "Client Onboarding Process",
+        "department": "Sales",
+        "category": "Operations",
+        "description": "Client onboarding workflow.",
+        "keywords": [
+            "client",
+            "customer",
+            "onboarding",
+            "crm"
+        ],
+        "author": "Sales Operations",
+        "created_date": "2025-07-10",
+        "last_updated": "2026-02-14",
+        "file_path": "documents/sales/client_onboarding.pdf"
+    },
+    {
+        "id": "DOC014",
+        "title": "Data Privacy Policy",
+        "department": "Legal",
+        "category": "Compliance",
+        "description": "Privacy and data protection guidelines.",
+        "keywords": [
+            "privacy",
+            "GDPR",
+            "data",
+            "compliance"
+        ],
+        "author": "Legal Department",
+        "created_date": "2025-08-05",
+        "last_updated": "2026-04-05",
+        "file_path": "documents/legal/data_privacy.pdf"
+    },
+    {
+        "id": "DOC015",
+        "title": "Remote Work Policy",
+        "department": "HR",
+        "category": "Policies",
+        "description": "Rules for working from home.",
+        "keywords": [
+            "remote",
+            "work from home",
+            "WFH",
+            "hybrid"
+        ],
+        "author": "HR Department",
+        "created_date": "2025-09-01",
+        "last_updated": "2026-03-20",
+        "file_path": "documents/hr/remote_work_policy.pdf"
+    }
+]
