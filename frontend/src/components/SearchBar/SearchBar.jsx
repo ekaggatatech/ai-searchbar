@@ -33,9 +33,12 @@ export default function SearchBar() {
     const loadRecentSearches = async () => {
         try {
             const res = await api.get("/history");
-            setRecentSearches(Array.isArray(res.data) ? res.data : []);
+            console.log("History:", res.data);
+
+            setRecentSearches(res.data.recent_searches || []);
         } catch (error) {
             console.log("Recent searches load error", error);
+            setRecentSearches([]);
         }
     };
 
@@ -107,7 +110,7 @@ export default function SearchBar() {
                 top_k: 10,
             });
 
-            const aiResults = res.data.results || res.data || [];
+            const aiResults = res.data.results || [];
             const finalResults = removeDuplicateResults([
                 ...sidebarResults,
                 ...aiResults,
@@ -116,7 +119,8 @@ export default function SearchBar() {
             setResults(finalResults);
             setSuggestions([]);
             setQuery(finalQuery);
-            loadRecentSearches();
+
+            await loadRecentSearches();
         } catch (error) {
             console.log("Search error", error);
         }
@@ -147,13 +151,8 @@ export default function SearchBar() {
         }
     };
 
-    const deleteRecentSearch = async (id) => {
-        try {
-            await api.delete(`/history/${id}`);
-            loadRecentSearches();
-        } catch (error) {
-            console.log("Delete history error", error);
-        }
+    const removeRecentFromUI = (index) => {
+        setRecentSearches((prev) => prev.filter((_, i) => i !== index));
     };
 
     return (
@@ -231,13 +230,18 @@ export default function SearchBar() {
                     <h3>Recent Searches</h3>
 
                     <div className="recent-list">
-                        {recentSearches.map((item) => (
-                            <div className="recent-chip" key={item.id}>
-                                <span onClick={() => handleSearch(item.query)}>
-                                    {item.query}
+                        {recentSearches.map((item, index) => (
+                            <div className="recent-chip" key={index}>
+                                <span onClick={() => deleteRecentSearch(item)}>
+                                    {item}
                                 </span>
 
-                                <button onClick={() => deleteRecentSearch(item.id)}>×</button>
+                                <button
+                                    className="remove-btn"
+                                    onClick={() => removeRecentFromUI(index)}
+                                >
+                                    <CloseIcon fontSize="small" />
+                                </button>
                             </div>
                         ))}
                     </div>
@@ -260,3 +264,11 @@ export default function SearchBar() {
         </div>
     );
 }
+const deleteRecentSearch = async (queryText) => {
+    try {
+        await api.delete(`/history?query=${encodeURIComponent(queryText)}`);
+        await loadRecentSearches();
+    } catch (error) {
+        console.log("Delete history error", error);
+    }
+};

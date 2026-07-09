@@ -1,76 +1,39 @@
 import { useEffect, useState } from "react";
-import DeleteIcon from "@mui/icons-material/Delete";
-
 import api from "../../api/api";
 
-import "./History.css";
-
 export default function History() {
+  const [history, setHistory] = useState([]);
 
-    const [history, setHistory] = useState([]);
+  useEffect(() => {
+    loadHistory();
+  }, []);
 
-    useEffect(() => {
+  const loadHistory = async () => {
+    try {
+      const res = await api.get("/history");
 
-        loadHistory();
+      console.log("History response:", res.data);
 
-    }, []);
+      setHistory(res.data.recent_searches || []);
+    } catch (err) {
+      console.error("History error:", err);
+      setHistory([]);
+    }
+  };
 
-    const loadHistory = async () => {
+  return (
+    <div>
+      <h2>Search History</h2>
 
-        try {
-
-            const res = await api.get("/history");
-
-            setHistory(res.data);
-
-        } catch (err) {
-
-            console.log(err);
-
-        }
-
-    };
-
-    const deleteHistory = async (id) => {
-
-        try {
-
-            await api.delete(`/history/${id}`);
-
-            loadHistory();
-
-        } catch (err) {
-
-            console.log(err);
-
-        }
-
-    };
-
-    return (
-
-        <div className="history-page">
-
-            <h1>Recent Searches</h1>
-
-            {history.map((item) => (
-
-                <div className="history-card" key={item.id}>
-
-                    <span>{item.query}</span>
-
-                    <button onClick={() => deleteHistory(item.id)}>
-
-                        <DeleteIcon />
-
-                    </button>
-
-                </div>
-
-            ))}
-
-        </div>
-
-    );
-
+      {history.length === 0 ? (
+        <p>No recent searches found.</p>
+      ) : (
+        history.map((item, index) => (
+          <div key={index}>
+            🔍 {item}
+          </div>
+        ))
+      )}
+    </div>
+  );
 }

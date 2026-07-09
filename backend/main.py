@@ -45,7 +45,7 @@ app.add_middleware(
 @app.get("/")
 def home():
     return {
-        "message": "AI Enterprise Search Backend Running"
+        "message": "AI Enterprise Search Backend Running correctly"
     }
 
 
@@ -95,7 +95,9 @@ def add_history(search: SearchRequest):
 @app.get("/history")
 def history():
 
-    return get_history()
+    return {
+        "recent_searches": get_history()
+    }
 
 
 @app.delete("/history/{history_id}")
@@ -126,16 +128,16 @@ def delete_history(history_id: int):
 @app.post("/search")
 def search(search: SearchRequest):
 
+    print("Search Query:", search.query)
+
+    save_search(search.query)
+
     results = search_documents(search.query)
 
     return {
-
         "query": search.query,
-
         "total_results": len(results),
-
         "results": results
-
     }
 
 
@@ -146,21 +148,18 @@ def search(search: SearchRequest):
 @app.post("/ai-search")
 def ai_search(search: SearchRequest):
 
+    save_search(search.query)
+
     results = semantic_search(
         search.query,
         search.top_k
     )
 
     return {
-
         "query": search.query,
-
         "total_results": len(results),
-
         "results": results
-
     }
-
 
 # -----------------------------
 # Dynamic Document Page
@@ -195,3 +194,17 @@ def get_category(category: str):
             results.append(doc)
 
     return results
+@app.delete("/history")
+def delete_history_by_query(query: str):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        "DELETE FROM search_history WHERE query = ?",
+        (query,)
+    )
+
+    conn.commit()
+    conn.close()
+
+    return {"message": "Deleted successfully"}
