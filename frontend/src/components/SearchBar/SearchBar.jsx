@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import SearchIcon from "@mui/icons-material/Search";
 import CloseIcon from "@mui/icons-material/Close";
 
@@ -7,8 +6,6 @@ import api from "../../api/api";
 import "./SearchBar.css";
 
 export default function SearchBar() {
-    const navigate = useNavigate();
-
     const [query, setQuery] = useState("");
     const [suggestions, setSuggestions] = useState([]);
     const [recentSearches, setRecentSearches] = useState([]);
@@ -33,8 +30,6 @@ export default function SearchBar() {
     const loadRecentSearches = async () => {
         try {
             const res = await api.get("/history");
-            console.log("History:", res.data);
-
             setRecentSearches(res.data.recent_searches || []);
         } catch (error) {
             console.log("Recent searches load error", error);
@@ -58,9 +53,7 @@ export default function SearchBar() {
 
         return items.filter((item) => {
             const key = item.route || item.doc_id || item.id || item.title;
-
             if (seen.has(key)) return false;
-
             seen.add(key);
             return true;
         });
@@ -111,6 +104,7 @@ export default function SearchBar() {
             });
 
             const aiResults = res.data.results || [];
+
             const finalResults = removeDuplicateResults([
                 ...sidebarResults,
                 ...aiResults,
@@ -126,33 +120,32 @@ export default function SearchBar() {
         }
     };
 
+    const handleRecentClick = async (item) => {
+        await handleSearch(item);
+    };
+
+    const deleteRecentSearch = async (queryText) => {
+        try {
+            await api.delete(`/history?query=${encodeURIComponent(queryText)}`);
+            await loadRecentSearches();
+        } catch (error) {
+            console.log("Delete history error", error);
+        }
+    };
+
     const handleParentClick = (item) => {
         setSuggestions([]);
         setQuery(item.name);
-        navigate(item.route);
     };
 
     const handleChildClick = (child) => {
         setSuggestions([]);
         setQuery(child.title);
-
-        if (child.route) {
-            navigate(child.route);
-        } else {
-            navigate(`/document/${child.doc_id}`);
-        }
+        handleSearch(child.title);
     };
 
     const handleResultClick = (item) => {
-        if (item.route) {
-            navigate(item.route);
-        } else {
-            navigate(`/document/${item.doc_id || item.id}`);
-        }
-    };
-
-    const removeRecentFromUI = (index) => {
-        setRecentSearches((prev) => prev.filter((_, i) => i !== index));
+        console.log("Clicked result:", item);
     };
 
     return (
@@ -232,13 +225,19 @@ export default function SearchBar() {
                     <div className="recent-list">
                         {recentSearches.map((item, index) => (
                             <div className="recent-chip" key={index}>
-                                <span onClick={() => deleteRecentSearch(item)}>
+                                <span
+                                    className="recent-text"
+                                    onClick={() => handleRecentClick(item)}
+                                >
                                     {item}
                                 </span>
 
                                 <button
                                     className="remove-btn"
-                                    onClick={() => removeRecentFromUI(index)}
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        deleteRecentSearch(item);
+                                    }}
                                 >
                                     <CloseIcon fontSize="small" />
                                 </button>
@@ -264,11 +263,3 @@ export default function SearchBar() {
         </div>
     );
 }
-const deleteRecentSearch = async (queryText) => {
-    try {
-        await api.delete(`/history?query=${encodeURIComponent(queryText)}`);
-        await loadRecentSearches();
-    } catch (error) {
-        console.log("Delete history error", error);
-    }
-};

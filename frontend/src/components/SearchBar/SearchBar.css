@@ -176,3 +176,10 @@
     font-size: 12px;
     color: #6b7280;
 }
+.recent-text {
+    cursor: pointer;
+}
+
+.recent-text:hover {
+    color: #2563eb;
+}
