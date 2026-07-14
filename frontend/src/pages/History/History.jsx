@@ -22,14 +22,22 @@ export default function History() {
   };
 
   return (
-    <div>
+    <div style={{ padding: "30px" }}>
+      <h1>This is your History Page</h1>
+
       <h2>Search History</h2>
 
       {history.length === 0 ? (
         <p>No recent searches found.</p>
       ) : (
         history.map((item, index) => (
-          <div key={index}>
+          <div
+            key={index}
+            style={{
+              padding: "10px 0",
+              borderBottom: "1px solid #ddd",
+            }}
+          >
             🔍 {item}
           </div>
         ))

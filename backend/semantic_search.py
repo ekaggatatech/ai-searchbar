@@ -1,31 +1,59 @@
 import json
+
 import faiss
 import numpy as np
 
 from embedding import get_embedding
 
-INDEX = faiss.read_index("faiss_index/company.index")
 
-with open("faiss_index/documents.json", "r") as file:
+INDEX_PATH = "faiss_index/company.index"
+DOCUMENTS_PATH = "faiss_index/documents.json"
 
+
+INDEX = faiss.read_index(INDEX_PATH)
+
+with open(DOCUMENTS_PATH, "r", encoding="utf-8") as file:
     DOCUMENTS = json.load(file)
 
 
-def semantic_search(query, top_k=5):
+def semantic_search(query: str, top_k: int = 5):
+    clean_query = query.strip()
 
-    vector = get_embedding(query)
+    if not clean_query:
+        return []
 
-    vector = np.array([vector]).astype("float32")
+    if not DOCUMENTS:
+        return []
 
-    distances, indices = INDEX.search(vector, top_k)
+    safe_top_k = min(top_k, len(DOCUMENTS))
+
+    query_vector = get_embedding(clean_query)
+
+    query_vector = np.array(
+        [query_vector],
+        dtype="float32"
+    )
+
+    distances, indices = INDEX.search(
+        query_vector,
+        safe_top_k
+    )
 
     results = []
 
-    for i, idx in enumerate(indices[0]):
+    for distance, index in zip(
+        distances[0],
+        indices[0]
+    ):
+        if index == -1:
+            continue
 
-        document = DOCUMENTS[idx]
+        if index < 0 or index >= len(DOCUMENTS):
+            continue
 
-        document["distance"] = float(distances[0][i])
+        document = DOCUMENTS[index].copy()
+
+        document["distance"] = float(distance)
 
         results.append(document)
 

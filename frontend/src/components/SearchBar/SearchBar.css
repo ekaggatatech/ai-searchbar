@@ -176,10 +176,81 @@
     font-size: 12px;
     color: #6b7280;
 }
+
 .recent-text {
     cursor: pointer;
 }
 
 .recent-text:hover {
     color: #2563eb;
+}
+
+.recent-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 12px;
+}
+
+.recent-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 999px;
+    padding: 7px 8px 7px 14px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+}
+
+.recent-text {
+    border: none;
+    background: transparent;
+    font-size: 14px;
+    color: #1f2937;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.recent-text:hover {
+    color: #2563eb;
+}
+
+.remove-btn {
+    width: 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: #fee2e2;
+    color: #dc2626;
+    cursor: pointer;
+}
+
+.remove-btn svg {
+    width: 16px;
+    height: 16px;
+}
+
+.remove-btn:hover {
+    background: #dc2626;
+    color: white;
+}
+
+.result-card {
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.result-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.1);
+}
+
+.result-card:focus {
+    outline: 2px solid #2563eb;
+    outline-offset: 3px;
 }
