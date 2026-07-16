@@ -1,0 +1,164 @@
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+
+  width: 100%;
+  padding: 12px 24px;
+
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+
+  box-sizing: border-box;
+  overflow: visible;
+}
+
+.header-search {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.header-search .search-wrapper {
+  width: 100%;
+}
+
+.header-search .search-title {
+  display: none;
+}
+
+/* Recent searches ko Header ke neeche visible rakho */
+.header-search .recent-box {
+  display: block;
+  margin-top: 14px;
+}
+
+/* Result cards Header ke andar nahi dikhane */
+.header-search .results-grid {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .header {
+    padding: 10px 16px;
+  }
+
+  .header-search {
+    max-width: 100%;
+  }
+}
+/* Recent Searches section */
+.recent-box {
+  margin-top: 14px;
+  padding: 0;
+  background: transparent;
+}
+
+.recent-box h3 {
+  margin: 0 0 10px;
+  color: #475569;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.recent-list {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+
+  padding: 2px 2px 8px;
+
+  scrollbar-width: thin;
+}
+
+.recent-list::-webkit-scrollbar {
+  height: 6px;
+}
+
+.recent-list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.recent-list::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 999px;
+}
+
+.recent-chip {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+
+  min-height: 36px;
+
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.recent-chip:hover {
+  background: #e0e7ff;
+  border-color: #c7d2fe;
+  transform: translateY(-1px);
+}
+
+.recent-text {
+  max-width: 220px;
+  padding: 8px 6px 8px 14px;
+
+  border: none;
+  background: transparent;
+  color: #334155;
+
+  font-size: 13px;
+  font-family: inherit;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  cursor: pointer;
+}
+
+.remove-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 30px;
+  height: 30px;
+  margin-right: 3px;
+  padding: 0;
+
+  border: none;
+  border-radius: 50%;
+
+  background: transparent;
+  color: #64748b;
+
+  cursor: pointer;
+}
+
+.remove-btn:hover {
+  background: #ffffff;
+  color: #dc2626;
+}
+
+.remove-btn svg {
+  width: 17px;
+  height: 17px;
+}
+
+@media (max-width: 640px) {
+  .recent-text {
+    max-width: 150px;
+  }
+}

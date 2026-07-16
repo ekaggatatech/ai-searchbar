@@ -1,0 +1,282 @@
+.search-wrapper {
+    position: relative;
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+}
+
+/* Header mein title ya subtitle show nahi hoga */
+.search-title {
+    display: none;
+}
+
+.search-box {
+    width: min(550px, 90%);
+    height: 48px;
+
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    margin: 0 auto;
+    padding: 0 16px;
+
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 999px;
+
+    box-sizing: border-box;
+
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08);
+
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+.search-box:focus-within {
+    border-color: #2563eb;
+
+    box-shadow:
+        0 0 0 3px rgba(37, 99, 235, 0.12),
+        0 6px 18px rgba(15, 23, 42, 0.08);
+}
+
+.search-icon {
+    flex-shrink: 0;
+    color: #64748b;
+}
+
+.search-box input {
+    flex: 1;
+    min-width: 0;
+
+    border: none;
+    outline: none;
+
+    background: transparent;
+
+    color: #111827;
+    font-size: 17px;
+    font-family: inherit;
+}
+
+.search-box input::placeholder {
+    color: #94a3b8;
+}
+
+.clear-btn {
+    width: 36px;
+    height: 36px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    flex-shrink: 0;
+
+    padding: 0;
+
+    border: none;
+    border-radius: 50%;
+
+    background: transparent;
+    color: #64748b;
+
+    cursor: pointer;
+
+    transition:
+        background-color 0.2s ease,
+        color 0.2s ease;
+}
+
+.clear-btn:hover {
+    background: #f1f5f9;
+    color: #111827;
+}
+
+.clear-btn:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 2px;
+}
+
+.clear-btn svg {
+    width: 20px;
+    height: 20px;
+}
+
+/* Search button ko hide rakha gaya hai */
+.search-btn {
+    height: 40px;
+    min-width: 90px;
+    padding: 0 18px;
+
+    border: none;
+    border-radius: 999px;
+
+    background: #2563eb;
+    color: #ffffff;
+
+    font-size: 14px;
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition: background 0.2s ease;
+}
+
+.search-btn:hover {
+    background: #1d4ed8;
+}
+
+.search-btn:active {
+    background: #1e40af;
+}
+
+/* Suggestions dropdown */
+.suggestion-box {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    right: 0;
+    z-index: 1000;
+
+    max-height: 420px;
+    overflow-y: auto;
+
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 18px;
+
+    box-shadow:
+        0 10px 30px rgba(15, 23, 42, 0.12);
+}
+
+.suggestion-group {
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.suggestion-group:last-child {
+    border-bottom: none;
+}
+
+.suggestion-item {
+    width: 100%;
+
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    padding: 13px 16px;
+
+    box-sizing: border-box;
+
+    color: #1f2937;
+
+    cursor: pointer;
+
+    transition:
+        background-color 0.2s ease;
+}
+
+.suggestion-item:hover,
+.suggestion-item:focus {
+    background: #f8fafc;
+    outline: none;
+}
+
+.parent-suggestion {
+    font-weight: 600;
+}
+
+.parent-suggestion svg {
+    width: 20px;
+    height: 20px;
+
+    flex-shrink: 0;
+
+    color: #64748b;
+}
+
+.child-suggestions {
+    background: #f8fafc;
+}
+
+.child-suggestion {
+    padding-left: 48px;
+
+    color: #374151;
+    font-size: 14px;
+}
+
+.suggestion-item span {
+    min-width: 0;
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.suggestion-item small {
+    margin-left: auto;
+
+    flex-shrink: 0;
+
+    color: #64748b;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+/* Header ke andar recent searches aur result cards nahi dikhenge */
+.recent-box,
+.results-grid {
+    display: none;
+}
+
+/* Scrollbar styling */
+.suggestion-box::-webkit-scrollbar {
+    width: 8px;
+}
+
+.suggestion-box::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.suggestion-box::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 999px;
+}
+
+.suggestion-box::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+@media (max-width: 900px) {
+    .search-wrapper {
+        max-width: none;
+    }
+}
+
+@media (max-width: 640px) {
+    .search-box {
+        height: 48px;
+        padding: 0 12px;
+    }
+
+    .search-box input {
+        font-size: 14px;
+    }
+
+    .clear-btn {
+        width: 32px;
+        height: 32px;
+    }
+
+    .suggestion-box {
+        max-height: 340px;
+        border-radius: 14px;
+    }
+
+    .child-suggestion {
+        padding-left: 38px;
+    }
+}
