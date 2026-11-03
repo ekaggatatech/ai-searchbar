@@ -14,7 +14,8 @@ from models import SearchRequest
 
 
 app = FastAPI(
-    title="AI Enterprise Search API"
+    title="AI Enterprise Search API",
+    version="1.0.0",
 )
 
 
@@ -28,64 +29,119 @@ BASE_DIR = os.path.dirname(
 
 METADATA_PATH = os.path.join(
     BASE_DIR,
-    "metadata.json"
+    "metadata.json",
 )
 
 
 # --------------------------------------------------
-# Initial setup
+# CORS
+# --------------------------------------------------
+# Development environment mein React kisi bhi
+# localhost port par run ho sakta hai.
+#
+# allow_origins=["*"] ke saath
+# allow_credentials=False hona chahiye.
+# --------------------------------------------------
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+# --------------------------------------------------
+# Initial database setup
 # --------------------------------------------------
 
 create_tables()
 insert_sidebar()
 
 
+# --------------------------------------------------
+# Load metadata documents
+# --------------------------------------------------
+
 def load_documents():
     """
-    Load all documents safely from metadata.json.
+    Load documents from metadata.json.
+
+    Supported formats:
+
+    1. Direct list:
+       [
+           {...},
+           {...}
+       ]
+
+    2. Object containing documents:
+       {
+           "documents": [
+               {...},
+               {...}
+           ]
+       }
     """
 
     try:
         with open(
             METADATA_PATH,
             "r",
-            encoding="utf-8"
+            encoding="utf-8",
         ) as file:
             data = json.load(file)
 
         if isinstance(data, list):
+            print(
+                f"{len(data)} documents loaded "
+                "from metadata.json"
+            )
             return data
 
         if (
             isinstance(data, dict)
             and isinstance(
                 data.get("documents"),
-                list
+                list,
             )
         ):
-            return data["documents"]
+            documents = data["documents"]
+
+            print(
+                f"{len(documents)} documents loaded "
+                "from metadata.json"
+            )
+
+            return documents
 
         print(
-            "metadata.json must contain "
-            "a list of documents."
+            "metadata.json must contain either "
+            "a list or a documents list."
         )
 
         return []
 
     except FileNotFoundError:
         print(
-            f"metadata.json not found at: "
-            f"{METADATA_PATH}"
+            "metadata.json not found at:",
+            METADATA_PATH,
         )
-
         return []
 
     except json.JSONDecodeError as error:
         print(
-            "Invalid metadata.json:",
-            error
+            "metadata.json contains invalid JSON:",
+            error,
         )
+        return []
 
+    except Exception as error:
+        print(
+            "Unexpected metadata loading error:",
+            error,
+        )
         return []
 
 
@@ -98,7 +154,7 @@ DOCUMENTS = load_documents()
 
 def get_document_id(document):
     """
-    Support doc_id, docId and id formats.
+    Support id, doc_id and docId.
     """
 
     if not isinstance(document, dict):
@@ -128,55 +184,78 @@ def get_document_department(document):
 
 def normalize_document(document):
     """
-    Return a consistent document format
+    Return a consistent document structure
     for the React frontend.
     """
+
+    if not isinstance(document, dict):
+        return {}
 
     normalized = dict(document)
 
     document_id = get_document_id(document)
 
     if document_id is not None:
-        normalized["doc_id"] = str(
-            document_id
+        normalized["id"] = str(document_id)
+        normalized["doc_id"] = str(document_id)
+
+    department = get_document_department(document)
+
+    normalized["department"] = (
+        department or "Other"
+    )
+
+    if not normalized.get("title"):
+        normalized["title"] = "Untitled Document"
+
+    if not normalized.get("description"):
+        normalized["description"] = (
+            "No description is available."
         )
 
-    if not normalized.get("department"):
-        normalized["department"] = (
-            get_document_department(document)
-            or "Other"
-        )
+    if not isinstance(
+        normalized.get("keywords"),
+        list,
+    ):
+        keywords = normalized.get("keywords")
+
+        if isinstance(keywords, str):
+            normalized["keywords"] = [
+                keyword.strip()
+                for keyword in keywords.split(",")
+                if keyword.strip()
+            ]
+        else:
+            normalized["keywords"] = []
 
     return normalized
 
 
 # --------------------------------------------------
-# CORS
-# --------------------------------------------------
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-    ],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-
-# --------------------------------------------------
-# Home
+# Root health check
 # --------------------------------------------------
 
 @app.get("/")
 def home():
     return {
+        "success": True,
         "message": (
             "AI Enterprise Search "
             "Backend Running correctly"
         ),
+        "documents_loaded": len(DOCUMENTS),
+        "metadata_path": METADATA_PATH,
+    }
+
+
+# --------------------------------------------------
+# Backend health endpoint
+# --------------------------------------------------
+
+@app.get("/health")
+def health():
+    return {
+        "status": "healthy",
         "documents_loaded": len(DOCUMENTS),
     }
 
@@ -203,6 +282,17 @@ def sidebar():
             for row in rows
         ]
 
+    except Exception as error:
+        print(
+            "Sidebar load error:",
+            error,
+        )
+
+        raise HTTPException(
+            status_code=500,
+            detail="Unable to load sidebar",
+        )
+
     finally:
         conn.close()
 
@@ -212,8 +302,34 @@ def sidebar():
 # --------------------------------------------------
 
 @app.get("/suggestions")
-def suggestions(query: str):
-    return get_suggestions(query)
+def suggestions(query: str = ""):
+    clean_query = query.strip()
+
+    if not clean_query:
+        return []
+
+    try:
+        results = get_suggestions(
+            clean_query
+        )
+
+        if not isinstance(results, list):
+            return []
+
+        return results
+
+    except Exception as error:
+        print(
+            "Suggestion error:",
+            error,
+        )
+
+        raise HTTPException(
+            status_code=500,
+            detail=(
+                "Unable to load suggestions"
+            ),
+        )
 
 
 # --------------------------------------------------
@@ -227,27 +343,67 @@ def add_history(search: SearchRequest):
     if not clean_query:
         raise HTTPException(
             status_code=400,
-            detail="Search query cannot be empty",
+            detail=(
+                "Search query cannot be empty"
+            ),
         )
 
-    save_search(clean_query)
+    try:
+        save_search(clean_query)
 
-    return {
-        "message": (
-            "Search saved successfully"
+        return {
+            "success": True,
+            "message": (
+                "Search saved successfully"
+            ),
+        }
+
+    except Exception as error:
+        print(
+            "Save history error:",
+            error,
         )
-    }
+
+        raise HTTPException(
+            status_code=500,
+            detail=(
+                "Unable to save search history"
+            ),
+        )
 
 
 @app.get("/history")
 def history():
-    return {
-        "recent_searches": get_history()
-    }
+    try:
+        recent_searches = get_history()
+
+        if not isinstance(
+            recent_searches,
+            list,
+        ):
+            recent_searches = []
+
+        return {
+            "recent_searches": (
+                recent_searches
+            )
+        }
+
+    except Exception as error:
+        print(
+            "History load error:",
+            error,
+        )
+
+        return {
+            "recent_searches": []
+        }
 
 
 @app.delete("/history")
-def delete_history_by_query(query: str):
+def delete_history_by_query(
+    query: str,
+):
     clean_query = query.strip()
 
     if not clean_query:
@@ -272,17 +428,33 @@ def delete_history_by_query(query: str):
         conn.commit()
 
         return {
+            "success": True,
             "message": (
-                "Deleted successfully"
-            )
+                "Search deleted successfully"
+            ),
         }
+
+    except Exception as error:
+        print(
+            "Delete history error:",
+            error,
+        )
+
+        raise HTTPException(
+            status_code=500,
+            detail=(
+                "Unable to delete history"
+            ),
+        )
 
     finally:
         conn.close()
 
 
 @app.delete("/history/{history_id}")
-def delete_history(history_id: int):
+def delete_history(
+    history_id: int,
+):
     conn = get_connection()
 
     try:
@@ -307,9 +479,10 @@ def delete_history(history_id: int):
             )
 
         return {
+            "success": True,
             "message": (
-                "Deleted successfully"
-            )
+                "Search deleted successfully"
+            ),
         }
 
     finally:
@@ -321,38 +494,53 @@ def delete_history(history_id: int):
 # --------------------------------------------------
 
 @app.post("/search")
-def search(search: SearchRequest):
-    clean_query = search.query.strip()
+def search(search_request: SearchRequest):
+    clean_query = (
+        search_request.query.strip()
+    )
 
     if not clean_query:
         raise HTTPException(
             status_code=400,
-            detail="Search query cannot be empty",
+            detail=(
+                "Search query cannot be empty"
+            ),
         )
 
-    print(
-        "Search Query:",
-        clean_query
-    )
+    try:
+        save_search(clean_query)
 
-    save_search(clean_query)
+        results = search_documents(
+            clean_query
+        )
 
-    results = search_documents(
-        clean_query
-    )
+        if not isinstance(results, list):
+            results = []
 
-    normalized_results = [
-        normalize_document(document)
-        for document in results
-    ]
+        normalized_results = [
+            normalize_document(document)
+            for document in results
+            if isinstance(document, dict)
+        ]
 
-    return {
-        "query": clean_query,
-        "total_results": len(
-            normalized_results
-        ),
-        "results": normalized_results,
-    }
+        return {
+            "query": clean_query,
+            "total_results": len(
+                normalized_results
+            ),
+            "results": normalized_results,
+        }
+
+    except Exception as error:
+        print(
+            "Keyword search error:",
+            error,
+        )
+
+        raise HTTPException(
+            status_code=500,
+            detail="Keyword search failed",
+        )
 
 
 # --------------------------------------------------
@@ -360,34 +548,58 @@ def search(search: SearchRequest):
 # --------------------------------------------------
 
 @app.post("/ai-search")
-def ai_search(search: SearchRequest):
-    clean_query = search.query.strip()
+def ai_search(
+    search_request: SearchRequest,
+):
+    clean_query = (
+        search_request.query.strip()
+    )
 
     if not clean_query:
         raise HTTPException(
             status_code=400,
-            detail="Search query cannot be empty",
+            detail=(
+                "Search query cannot be empty"
+            ),
         )
 
-    save_search(clean_query)
+    try:
+        save_search(clean_query)
 
-    results = semantic_search(
-        clean_query,
-        search.top_k,
-    )
+        results = semantic_search(
+            clean_query,
+            search_request.top_k,
+        )
 
-    normalized_results = [
-        normalize_document(document)
-        for document in results
-    ]
+        if not isinstance(results, list):
+            results = []
 
-    return {
-        "query": clean_query,
-        "total_results": len(
-            normalized_results
-        ),
-        "results": normalized_results,
-    }
+        normalized_results = [
+            normalize_document(document)
+            for document in results
+            if isinstance(document, dict)
+        ]
+
+        return {
+            "query": clean_query,
+            "total_results": len(
+                normalized_results
+            ),
+            "results": normalized_results,
+        }
+
+    except Exception as error:
+        print(
+            "AI semantic search error:",
+            error,
+        )
+
+        raise HTTPException(
+            status_code=500,
+            detail=(
+                f"AI search failed: {str(error)}"
+            ),
+        )
 
 
 # --------------------------------------------------
@@ -396,11 +608,21 @@ def ai_search(search: SearchRequest):
 
 @app.get("/document/{doc_id}")
 def get_document(doc_id: str):
-    requested_id = str(
-        doc_id
-    ).strip().lower()
+    requested_id = (
+        str(doc_id)
+        .strip()
+        .lower()
+    )
 
-    for document in DOCUMENTS:
+    if not requested_id:
+        raise HTTPException(
+            status_code=400,
+            detail="Document ID is required",
+        )
+
+    latest_documents = load_documents()
+
+    for document in latest_documents:
         current_id = get_document_id(
             document
         )
@@ -408,12 +630,13 @@ def get_document(doc_id: str):
         if current_id is None:
             continue
 
-        if (
+        current_id = (
             str(current_id)
             .strip()
             .lower()
-            == requested_id
-        ):
+        )
+
+        if current_id == requested_id:
             return normalize_document(
                 document
             )
@@ -422,7 +645,6 @@ def get_document(doc_id: str):
         status_code=404,
         detail="Document not found",
     )
-
 
 # --------------------------------------------------
 # Dynamic category page
@@ -435,24 +657,60 @@ def get_category(category: str):
         .strip()
         .lower()
         .replace("-", " ")
+        .replace("_", " ")
     )
+
+    if not requested_category:
+        raise HTTPException(
+            status_code=400,
+            detail="Category is required",
+        )
+
+    latest_documents = load_documents()
 
     results = []
 
-    for document in DOCUMENTS:
+    for document in latest_documents:
         department = (
             get_document_department(
                 document
             )
             .lower()
             .replace("-", " ")
+            .replace("_", " ")
         )
 
         if department == requested_category:
             results.append(
-                normalize_document(
-                    document
-                )
+                normalize_document(document)
             )
 
     return results
+# --------------------------------------------------
+# All documents for dynamic dashboard
+# --------------------------------------------------
+
+@app.get("/documents")
+def get_all_documents():
+    """
+    Return latest documents from metadata.json.
+
+    File har request par dobara load hoti hai,
+    isliye metadata.json ke changes backend
+    restart kiye bina bhi frontend par aa sakte hain.
+    """
+
+    latest_documents = load_documents()
+
+    normalized_documents = [
+        normalize_document(document)
+        for document in latest_documents
+        if isinstance(document, dict)
+    ]
+
+    return {
+        "total_documents": len(
+            normalized_documents
+        ),
+        "documents": normalized_documents,
+    }

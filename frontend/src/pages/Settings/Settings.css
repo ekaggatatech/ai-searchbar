@@ -1,5 +1,311 @@
 .settings-page {
-  background: white;
-  padding: 30px;
-  border-radius: 20px;
+    padding: 30px;
+    background: #f5f7fb;
+    min-height: calc(100vh - 70px);
+}
+
+/* ---------- Header ---------- */
+
+.settings-header {
+    margin-bottom: 28px;
+}
+
+.settings-label {
+    display: inline-block;
+    padding: 5px 12px;
+    border-radius: 50px;
+    background: #e8f0ff;
+    color: #2563eb;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.settings-header h1 {
+    margin: 14px 0 8px;
+    font-size: 34px;
+    font-weight: 700;
+    color: #111827;
+}
+
+.settings-header p {
+    color: #6b7280;
+    font-size: 15px;
+}
+
+/* ---------- Layout ---------- */
+
+.settings-layout {
+    display: grid;
+    grid-template-columns: 2.5fr 1fr;
+    gap: 25px;
+    align-items: start;
+}
+
+/* ---------- Cards ---------- */
+
+.settings-card,
+.settings-side-card {
+    background: white;
+    border-radius: 18px;
+    padding: 24px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.06);
+    border: 1px solid #ececec;
+    margin-bottom: 25px;
+}
+
+.settings-card-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    margin-bottom:25px;
+}
+
+.settings-card-header h2{
+    margin:0;
+    font-size:22px;
+    color:#111827;
+}
+
+.settings-card-header p{
+    margin-top:6px;
+    color:#6b7280;
+}
+
+/* ---------- Profile ---------- */
+
+.profile-content{
+    display:flex;
+    gap:25px;
+}
+
+.profile-avatar{
+    width:90px;
+    height:90px;
+    border-radius:50%;
+    background:#2563eb;
+    color:white;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-size:34px;
+    font-weight:bold;
+    flex-shrink:0;
+}
+
+.profile-details{
+    flex:1;
+}
+
+.profile-details h3{
+    margin:0;
+    font-size:28px;
+}
+
+.profile-details p{
+    margin:5px 0 20px;
+    color:#6b7280;
+}
+
+.profile-information-grid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:18px;
+}
+
+.profile-information{
+    background:#f8fafc;
+    padding:16px;
+    border-radius:12px;
+}
+
+.profile-information span{
+    display:block;
+    font-size:13px;
+    color:#6b7280;
+}
+
+.profile-information strong{
+    display:block;
+    margin-top:6px;
+    color:#111827;
+    font-size:15px;
+}
+
+.active-value{
+    color:#16a34a !important;
+}
+
+/* ---------- Status ---------- */
+
+.profile-status{
+    background:#dcfce7;
+    color:#15803d;
+    padding:8px 15px;
+    border-radius:40px;
+    font-size:13px;
+    font-weight:600;
+}
+
+/* ---------- Preferences ---------- */
+
+.preference-item{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:20px 0;
+    border-bottom:1px solid #ececec;
+}
+
+.preference-item:last-child{
+    border:none;
+}
+
+.preference-item h3{
+    margin:0;
+    font-size:17px;
+}
+
+.preference-item p{
+    margin-top:5px;
+    color:#6b7280;
+}
+
+/* ---------- Toggle ---------- */
+
+.toggle-button{
+    width:58px;
+    height:30px;
+    border:none;
+    border-radius:30px;
+    cursor:pointer;
+    background:#d1d5db;
+    position:relative;
+    transition:.3s;
+}
+
+.toggle-button span{
+    width:24px;
+    height:24px;
+    background:white;
+    border-radius:50%;
+    position:absolute;
+    top:3px;
+    left:3px;
+    transition:.3s;
+}
+
+.toggle-button.enabled{
+    background:#2563eb;
+}
+
+.toggle-button.enabled span{
+    left:31px;
+}
+
+/* ---------- Security ---------- */
+
+.security-information{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.security-information>div{
+    display:flex;
+    gap:18px;
+    align-items:flex-start;
+}
+
+.security-icon{
+    font-size:32px;
+}
+
+.logout-button{
+    background:#ef4444;
+    color:white;
+    border:none;
+    padding:14px 28px;
+    border-radius:12px;
+    cursor:pointer;
+    font-weight:600;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    transition:.25s;
+}
+
+.logout-button:hover{
+    background:#dc2626;
+}
+
+/* ---------- Sidebar ---------- */
+
+.settings-side-card{
+    text-align:center;
+}
+
+.side-card-icon{
+    font-size:40px;
+    display:block;
+    margin-bottom:15px;
+}
+
+.settings-side-card h3{
+    margin-bottom:10px;
+}
+
+.settings-side-card p{
+    color:#6b7280;
+    line-height:1.6;
+}
+
+.help-card button{
+    margin-top:20px;
+    width:100%;
+    border:none;
+    background:#2563eb;
+    color:white;
+    padding:12px;
+    border-radius:10px;
+    cursor:pointer;
+    font-weight:600;
+}
+
+.help-card button:hover{
+    background:#1d4ed8;
+}
+
+/* ---------- Responsive ---------- */
+
+@media(max-width:1100px){
+
+.settings-layout{
+grid-template-columns:1fr;
+}
+
+}
+
+@media(max-width:700px){
+
+.profile-content{
+flex-direction:column;
+align-items:center;
+text-align:center;
+}
+
+.profile-information-grid{
+grid-template-columns:1fr;
+}
+
+.security-information{
+flex-direction:column;
+gap:20px;
+align-items:flex-start;
+}
+
+.logout-button{
+width:100%;
+justify-content:center;
+}
+
 }

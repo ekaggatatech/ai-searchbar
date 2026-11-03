@@ -1,4 +1,5 @@
 import {
+  useCallback,
   useEffect,
   useRef,
   useState,
@@ -13,6 +14,11 @@ import SearchIcon from "@mui/icons-material/Search";
 import CloseIcon from "@mui/icons-material/Close";
 
 import api from "../../../api/api";
+
+import {
+  useSearch,
+} from "../../context/SearchContext/SearchContext";
+
 import "./SearchBar.css";
 
 export default function SearchBar() {
@@ -22,61 +28,138 @@ export default function SearchBar() {
   const isSearchPage =
     location.pathname === "/search";
 
-  const [query, setQuery] = useState("");
-
-  const [suggestions, setSuggestions] =
-    useState([]);
-
   /*
-   * Dropdown open ya close hai.
+   * Search data local state mein nahi,
+   * shared SearchContext mein store hoga.
    *
-   * Search empty hai:
-   * Recent Searches show hongi.
-   *
-   * Search mein text hai:
-   * Suggestions show hongi.
+   * Isliye /search page open hone ke baad
+   * results reset nahi honge.
    */
+  const {
+    query,
+    setQuery,
+    results,
+    setResults,
+    suggestions,
+    setSuggestions,
+    loading: isSearching,
+    setLoading: setIsSearching,
+  } = useSearch();
+
   const [isDropdownOpen, setIsDropdownOpen] =
     useState(false);
 
   const [recentSearches, setRecentSearches] =
     useState([]);
 
-  const [results, setResults] = useState([]);
-
-  const [isSearching, setIsSearching] =
-    useState(false);
-
-  /*
-   * Purani suggestion API request ko dropdown
-   * dobara open karne se rokta hai.
-   */
   const suggestionsEnabledRef = useRef(false);
-
-  /*
-   * Search component ka outer container.
-   *
-   * Iska use outside click detect karne ke liye hoga.
-   */
   const searchWrapperRef = useRef(null);
+
+  const loadRecentSearches = useCallback(
+    async () => {
+      try {
+        const response = await api.get("/history");
+
+        const historyData = Array.isArray(
+          response.data?.recent_searches
+        )
+          ? response.data.recent_searches
+          : Array.isArray(response.data)
+          ? response.data
+          : [];
+
+        setRecentSearches(
+          historyData.slice(0, 5)
+        );
+      } catch (error) {
+        console.error(
+          "Recent searches load error:",
+          error
+        );
+
+        setRecentSearches([]);
+      }
+    },
+    []
+  );
+
+  const closeDropdown = useCallback(() => {
+    suggestionsEnabledRef.current = false;
+
+    setIsDropdownOpen(false);
+    setSuggestions([]);
+  }, [setSuggestions]);
+
+  const fetchSuggestions = useCallback(
+    async (text) => {
+      const cleanText =
+        typeof text === "string"
+          ? text.trim()
+          : "";
+
+      if (!cleanText) {
+        setSuggestions([]);
+        return;
+      }
+
+      try {
+        const response = await api.get(
+          `/suggestions?query=${encodeURIComponent(
+            cleanText
+          )}`
+        );
+
+        /*
+         * Dropdown close hone ke baad purana
+         * API response suggestions nahi kholega.
+         */
+        if (!suggestionsEnabledRef.current) {
+          return;
+        }
+
+        const suggestionData = Array.isArray(
+          response.data
+        )
+          ? response.data
+          : [];
+
+        setSuggestions(suggestionData);
+      } catch (error) {
+        console.error(
+          "Suggestion load error:",
+          error
+        );
+
+        if (suggestionsEnabledRef.current) {
+          setSuggestions([]);
+        }
+      }
+    },
+    [setSuggestions]
+  );
 
   useEffect(() => {
     loadRecentSearches();
-  }, []);
+  }, [loadRecentSearches]);
 
   /*
-   * Page change hone par dropdown,
-   * suggestions aur recent searches hide hongi.
+   * Page change hone par dropdown close hoga.
+   *
+   * Search results clear nahi honge because
+   * results SearchContext mein stored hain.
    */
   useEffect(() => {
     suggestionsEnabledRef.current = false;
 
     setIsDropdownOpen(false);
     setSuggestions([]);
-  }, [location.pathname]);
+  }, [
+    location.pathname,
+    setSuggestions,
+  ]);
 
   /*
-   * Search component ke bahar click karne par
+   * SearchBar ke bahar click karne par
    * dropdown close hoga.
    */
   useEffect(() => {
@@ -102,20 +185,19 @@ export default function SearchBar() {
         handleOutsideClick
       );
     };
-  }, []);
+  }, [closeDropdown]);
 
   /*
-   * User type karna stop karega to 300ms baad
-   * backend se suggestions load hongi.
+   * User typing stop karega to 300ms baad
+   * suggestions load hongi.
    */
   useEffect(() => {
     const cleanQuery = query.trim();
 
-    /*
-     * Empty query par Recent Searches dikhengi.
-     * Suggestions fetch nahi hongi.
-     */
-    if (!isDropdownOpen || cleanQuery.length < 2) {
+    if (
+      !isDropdownOpen ||
+      cleanQuery.length < 2
+    ) {
       setSuggestions([]);
       return;
     }
@@ -127,68 +209,12 @@ export default function SearchBar() {
     return () => {
       clearTimeout(timer);
     };
-  }, [query, isDropdownOpen]);
-
-  const loadRecentSearches = async () => {
-    try {
-      const response = await api.get("/history");
-
-      const historyData = Array.isArray(
-        response.data?.recent_searches
-      )
-        ? response.data.recent_searches
-        : Array.isArray(response.data)
-        ? response.data
-        : [];
-
-      setRecentSearches(
-        historyData.slice(0, 5)
-      );
-    } catch (error) {
-      console.error(
-        "Recent searches load error:",
-        error
-      );
-
-      setRecentSearches([]);
-    }
-  };
-
-  const fetchSuggestions = async (text) => {
-    try {
-      const response = await api.get(
-        `/suggestions?query=${encodeURIComponent(
-          text
-        )}`
-      );
-
-      /*
-       * User suggestion select kar chuka hai ya
-       * dropdown close ho chuka hai to old API
-       * response ignore hoga.
-       */
-      if (!suggestionsEnabledRef.current) {
-        return;
-      }
-
-      const suggestionData = Array.isArray(
-        response.data
-      )
-        ? response.data
-        : [];
-
-      setSuggestions(suggestionData);
-    } catch (error) {
-      console.error(
-        "Suggestion load error:",
-        error
-      );
-
-      if (suggestionsEnabledRef.current) {
-        setSuggestions([]);
-      }
-    }
-  };
+  }, [
+    query,
+    isDropdownOpen,
+    fetchSuggestions,
+    setSuggestions,
+  ]);
 
   const saveRecentSearch = async (
     searchText
@@ -216,26 +242,6 @@ export default function SearchBar() {
     }
   };
 
-  /*
-   * Suggestions aur Recent Searches
-   * dono close karega.
-   */
-  const closeDropdown = () => {
-    suggestionsEnabledRef.current = false;
-
-    setIsDropdownOpen(false);
-    setSuggestions([]);
-  };
-
-  /*
-   * Search bar click/focus:
-   *
-   * Empty query:
-   * Recent Searches show hongi.
-   *
-   * Existing query:
-   * Suggestions load/show hongi.
-   */
   const handleSearchFocus = () => {
     suggestionsEnabledRef.current = true;
 
@@ -272,12 +278,14 @@ export default function SearchBar() {
     return (
       item.doc_id ||
       item.docId ||
-      (item.result_type !== "page" &&
-      item.type !== "page" &&
-      item.id &&
-      !String(item.id).startsWith("/")
-        ? item.id
-        : null)
+      (
+        item.result_type !== "page" &&
+        item.type !== "page" &&
+        item.id &&
+        !String(item.id).startsWith("/")
+          ? item.id
+          : null
+      )
     );
   };
 
@@ -298,10 +306,6 @@ export default function SearchBar() {
       return;
     }
 
-    /*
-     * Result ya suggestion select karne ke baad
-     * Recent Searches aur Suggestions hide hongi.
-     */
     closeDropdown();
 
     if (
@@ -499,11 +503,13 @@ export default function SearchBar() {
           "Document",
         route:
           item.route ||
-          (documentId
-            ? `/document/${encodeURIComponent(
-                String(documentId)
-              )}`
-            : null),
+          (
+            documentId
+              ? `/document/${encodeURIComponent(
+                  String(documentId)
+                )}`
+              : null
+          ),
         result_type: documentId
           ? "document"
           : item.result_type,
@@ -527,18 +533,14 @@ export default function SearchBar() {
     }
 
     setIsSearching(true);
-
-    /*
-     * Search button ya Enter dabane ke baad
-     * dropdown close hoga.
-     */
     closeDropdown();
 
     try {
-      await api.post("/history", {
-        query: finalQuery,
-      });
-
+      /*
+       * History already /ai-search endpoint mein
+       * save ho rahi hai. Isliye separate history
+       * POST ki zarurat nahi hai.
+       */
       const [
         suggestionResponse,
         searchResponse,
@@ -578,16 +580,15 @@ export default function SearchBar() {
           ...semanticResults,
         ]);
 
+      /*
+       * Shared context mein save hoga.
+       */
       setQuery(finalQuery);
       setResults(finalResults);
       setSuggestions([]);
 
       await loadRecentSearches();
 
-      /*
-       * Search results sirf /search page par show hote hain.
-       * Agar user kisi aur page par hai to search page open hoga.
-       */
       if (!isSearchPage) {
         navigate("/search");
       }
@@ -596,24 +597,20 @@ export default function SearchBar() {
         "Search error:",
         error
       );
+
+      setResults([]);
     } finally {
       setIsSearching(false);
     }
   };
 
-  /*
-   * Category ya Page suggestion select.
-   */
   const handleParentClick = async (item) => {
     const selectedText =
-      item?.name || item?.title || query;
+      item?.name ||
+      item?.title ||
+      query;
 
-    /*
-     * Click karte hi Recent Searches aur
-     * Suggestions dono hide hongi.
-     */
     closeDropdown();
-
     setQuery(selectedText);
 
     await saveRecentSearch(selectedText);
@@ -621,19 +618,11 @@ export default function SearchBar() {
     navigateToItem(item);
   };
 
-  /*
-   * Document suggestion select.
-   */
   const handleChildClick = async (child) => {
     const selectedText =
       child?.title || query;
 
-    /*
-     * Click karte hi Recent Searches aur
-     * Suggestions dono hide hongi.
-     */
     closeDropdown();
-
     setQuery(selectedText);
 
     await saveRecentSearch(selectedText);
@@ -641,13 +630,6 @@ export default function SearchBar() {
     navigateToItem(child);
   };
 
-  /*
-   * Recent Search select karne par:
-   *
-   * 1. Recent dropdown hide hoga.
-   * 2. Query search bar mein set hogi.
-   * 3. Search execute hoga.
-   */
   const handleRecentClick = async (
     item
   ) => {
@@ -698,13 +680,7 @@ export default function SearchBar() {
     }
   };
 
-  /*
-   * Clear button:
-   *
-   * Query clear hogi aur input focused rehne par
-   * Recent Searches show hongi.
-   */
-  const clearSearch = () => {
+  const clearSearchInput = () => {
     setQuery("");
     setResults([]);
     setSuggestions([]);
@@ -750,16 +726,15 @@ export default function SearchBar() {
             setIsDropdownOpen(true);
             setQuery(inputValue);
 
-            /*
-             * User type karna start karega to
-             * Recent Searches automatically hide hongi.
-             */
-            if (inputValue.trim().length < 2) {
+            if (
+              inputValue.trim().length < 2
+            ) {
               setSuggestions([]);
             }
           }}
           onKeyDown={(event) => {
             if (event.key === "Enter") {
+              event.preventDefault();
               handleSearch();
             }
 
@@ -774,7 +749,7 @@ export default function SearchBar() {
             type="button"
             className="clear-btn"
             aria-label="Clear search"
-            onClick={clearSearch}
+            onClick={clearSearchInput}
           >
             <CloseIcon />
           </button>
@@ -794,7 +769,6 @@ export default function SearchBar() {
         </button>
       </div>
 
-      {/* User type karega tab sirf Suggestions show hongi */}
       {shouldShowSuggestions && (
         <div className="suggestion-box">
           {suggestions.map(
@@ -813,7 +787,6 @@ export default function SearchBar() {
                   tabIndex={0}
                   onMouseDown={(event) => {
                     event.preventDefault();
-
                     handleParentClick(item);
                   }}
                   onKeyDown={(event) => {
@@ -822,14 +795,17 @@ export default function SearchBar() {
                       event.key === " "
                     ) {
                       event.preventDefault();
-
                       handleParentClick(item);
                     }
                   }}
                 >
                   <SearchIcon />
 
-                  <span>{item.name}</span>
+                  <span>
+                    {item.name ||
+                      item.title ||
+                      "Open page"}
+                  </span>
 
                   <small>
                     {item.type === "category"
@@ -852,6 +828,7 @@ export default function SearchBar() {
                             className="suggestion-item child-suggestion"
                             key={
                               child.doc_id ||
+                              child.docId ||
                               child.id ||
                               childIndex
                             }
@@ -883,7 +860,9 @@ export default function SearchBar() {
                             }}
                           >
                             <span>
-                              ↳ {child.title}
+                              ↳{" "}
+                              {child.title ||
+                                "Document"}
                             </span>
 
                             <small>
@@ -900,7 +879,6 @@ export default function SearchBar() {
         </div>
       )}
 
-      {/* Empty SearchBar par click karne par Recent Searches */}
       {shouldShowRecentSearches && (
         <div className="recent-box">
           <h3>Recent Searches</h3>
@@ -945,9 +923,7 @@ export default function SearchBar() {
                         event.preventDefault();
                         event.stopPropagation();
 
-                        deleteRecentSearch(
-                          item
-                        );
+                        deleteRecentSearch(item);
                       }}
                     >
                       <CloseIcon fontSize="small" />
@@ -962,6 +938,19 @@ export default function SearchBar() {
 
       {isSearchPage && (
         <div className="results-grid">
+          {!isSearching &&
+            query.trim() &&
+            results.length === 0 && (
+              <div className="no-results">
+                <h3>No results found</h3>
+
+                <p>
+                  Try searching with another
+                  keyword.
+                </p>
+              </div>
+            )}
+
           {results.map(
             (item, index) => (
               <div
